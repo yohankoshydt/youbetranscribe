@@ -60,3 +60,47 @@ if st.button("Test API Call"):
         st.json(result)
     else:
         st.error(f"API Call Failed: {result}")
+
+
+
+from youtube_transcript_api import YouTubeTranscriptApi
+
+def get_video_id(youtube_url):
+    pattern = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
+    match = re.search(pattern, youtube_url)
+    return match.group(1) if match else None
+
+def get_available_languages(video_id):
+    try:
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        available_languages = {t.language_code: t.language for t in transcript_list}
+        return available_languages
+    except Exception as e:
+        st.error(f"Error fetching languages: {e}")
+        return {}
+
+
+
+import streamlit as st
+
+def get_available_languages(video_id):
+    # Dummy function to simulate language fetching
+    return {"en": "English", "es": "Spanish"}
+
+def main():
+    st.title("YouTube Transcript Language Fetcher")
+    
+    video_id = "DJy4PV6kETM"
+    
+    # Fetch available languages
+    available_languages = get_available_languages(video_id)
+    
+    # Display available languages
+    if available_languages:
+        st.subheader("Available Languages:")
+        st.write(available_languages)
+    else:
+        st.error("No available languages found.")
+
+if __name__ == "__main__":
+    main()
