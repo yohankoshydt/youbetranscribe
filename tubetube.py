@@ -1,9 +1,9 @@
-import streamlit as st
 import re
 import openai
+import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
 
-# Set up OpenAI API key
+# Set up OpenAI API key (replace with your actual key)
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Function to get video ID from YouTube URL
@@ -36,7 +36,6 @@ def generate_questions_from_transcript(transcript_text):
     prompt = f"Create fill-in-the-blank and match-the-following type questions from this transcript: \n\n{transcript_text}\n"
 
     try:
-        # Call OpenAI API 
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
@@ -49,50 +48,55 @@ def generate_questions_from_transcript(transcript_text):
         st.error(f"Error communicating with OpenAI: {e}")
         return None
 
-# Main function
+# Streamlit app
 def main():
     st.title("YouTube Transcript to Questions Generator")
-
-    # Input YouTube URL
-    youtube_url = st.text_input("Enter the YouTube video link:")
-
+    
+    # Input for YouTube URL
+    youtube_url = st.text_input("Enter the YouTube video link:", "")
+    
+    # Use session_state to preserve state after button clicks
+    if 'transcript_text' not in st.session_state:
+        st.session_state.transcript_text = None
+    if 'generated_questions' not in st.session_state:
+        st.session_state.generated_questions = None
+    
     if youtube_url:
         video_id = get_video_id(youtube_url)
+        
         if video_id:
-            # Get available languages for the transcript
+            # Fetch available languages
             available_languages = get_available_languages(video_id)
             
             if available_languages:
-                st.write("Available languages:")
-                for lang_code, lang_name in available_languages.items():
-                    st.write(f"{lang_code}: {lang_name}")
+                selected_language = st.selectbox("Select language for transcript:", options=list(available_languages.keys()), format_func=lambda x: available_languages[x])
                 
-                # Select the language
-                selected_language = st.selectbox("Select the language code for the transcript:", list(available_languages.keys()))
-                
-                # Fetch and display the transcript
+                # Fetch transcript when button is clicked
                 if st.button("Fetch Transcript"):
                     transcript_data = get_transcript(video_id, selected_language)
+                    
                     if transcript_data:
-                        transcript_text = " ".join([entry['text'] for entry in transcript_data])
-                        st.write("\nTranscript:")
-                        st.write(transcript_text)
-                        
-                        # Generate questions from transcript
-                        if st.button("Generate Questions"):
-                            st.write("\nGenerating questions...")
-                            generated_questions = generate_questions_from_transcript(transcript_text)
-                            if generated_questions:
-                                st.write("\nGenerated Questions:")
-                                st.write(generated_questions)
-                            else:
-                                st.write("No questions were generated.")
-                    else:
-                        st.write("No transcript found.")
+                        st.session_state.transcript_text = " ".join([entry['text'] for entry in transcript_data])
+                
+                # Show transcript if available
+                if st.session_state.transcript_text:
+                    st.subheader("Transcript:")
+                    st.text_area("Transcript Text", st.session_state.transcript_text, height=200)
+                    
+                    # Generate questions button
+                    if st.button("Generate Questions"):
+                        st.write("Generating questions, please wait...")
+                        st.session_state.generated_questions = generate_questions_from_transcript(st.session_state.transcript_text)
+                
+                # Display generated questions if available
+                if st.session_state.generated_questions:
+                    st.subheader("Generated Questions:")
+                    st.write(st.session_state.generated_questions)
+                    
             else:
-                st.write("No available languages found.")
+                st.error("No available languages found.")
         else:
-            st.write("Invalid YouTube URL.")
+            st.error("Invalid YouTube URL.")
 
 if __name__ == "__main__":
     main()
