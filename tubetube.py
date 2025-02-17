@@ -6,6 +6,19 @@ from youtube_transcript_api import YouTubeTranscriptApi
 # Set up OpenAI API key (replace with your actual key)
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
+import requests
+ 
+url = "https://api.publicapis.org/entries"  # Public API for testing
+try:
+    response = requests.get(url, timeout=5)
+    if response.status_code == 200:
+        print("API call successful! ✅")
+        print("Response Sample:", response.json()['entries'][:3])  # Show first 3 entries
+    else:
+        print(f"API call failed with status code {response.status_code}")
+except requests.exceptions.RequestException as e:
+    print(f"API call failed: {e}")
+    
 # Function to get video ID from YouTube URL
 def get_video_id(youtube_url):
     pattern = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
