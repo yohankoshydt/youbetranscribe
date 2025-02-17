@@ -7,8 +7,11 @@ import json
 # Streamlit App Title
 st.title("API Call Test in Streamlit")
 
+
+import httpx
+
 # API URL for testing
-url = "https://api.publicapis.org/entries"
+url = "https://fake-json-api.mock.beeceptor.com/users"
 
 # Function to call API using requests
 def call_api_requests():
