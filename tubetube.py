@@ -18,7 +18,7 @@ def call_api_requests():
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
-            return response.json()["entries"][:3]
+                return response.json()
         return f"Failed with status code {response.status_code}"
     except requests.exceptions.RequestException as e:
         return str(e)
